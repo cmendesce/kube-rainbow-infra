@@ -6,8 +6,13 @@ metadata:
     app: znn
 spec:
   ports:
-    - port: 80
-      name: web
+    - name: znn
+      targetPort: znn
+      port: 80
+    - name: metrics
+      port: 9180
+      targetPort: caddy-exporter
+      
   selector:
     app: znn
     tier: frontend

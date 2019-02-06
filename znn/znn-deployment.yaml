@@ -42,6 +42,8 @@ spec:
           value: "znn_data"
         - name: DB_USER
           value: "znn"
+        - name: SLEEP_TIME
+          value: "3"
         - name: DB_PASS
           valueFrom:
             secretKeyRef:
