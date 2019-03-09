@@ -13,3 +13,5 @@ metrics-ca-config.json
 metrics-ca.crt
 metrics-ca.key
 cm-adapter-serving-certs.yaml
+
+.DS_Store
