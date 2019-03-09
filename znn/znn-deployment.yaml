@@ -24,6 +24,16 @@ spec:
         prometheus.io/scrape: "true"
         prometheus.io/port: "9180"
     spec:
+      # affinity:
+      #   podAntiAffinity:
+      #     requiredDuringSchedulingIgnoredDuringExecution:
+      #     - labelSelector:
+      #         matchExpressions:
+      #         - key: service
+      #           operator: In
+      #           values:
+      #           - znn-db
+      #       topologyKey: kubernetes.io/hostname
       volumes:
       - name: shared-files
         emptyDir: {}
@@ -43,7 +53,7 @@ spec:
         - name: DB_USER
           value: "znn"
         - name: SLEEP_TIME
-          value: "3"
+          value: "0"
         - name: DB_PASS
           valueFrom:
             secretKeyRef:
@@ -63,6 +73,10 @@ spec:
           initialDelaySeconds: 1
           periodSeconds: 1
           failureThreshold: 5
+        # resources:
+        #   requests:
+        #     memory: 512Mi
+        #     cpu: 500m
         ports:
         - containerPort: 80
           name: znn

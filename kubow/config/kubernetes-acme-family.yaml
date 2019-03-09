@@ -1,0 +1,36 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  creationTimestamp: null
+  name: rainbow-properties
+data:
+  Kubernetes.acme: |
+
+    Family KubernetesFam = {
+      Property Type ContainerT = Record [image : string; name : string;];
+      Property Type SelectorT = Record [name : string; value : string;];
+      Connector Type SelectorConnector = {
+          Role selectorIn;
+          Role selectorOut;
+          Property selectors : Sequence<SelectorT>;
+      }
+      Component Type DeploymentT = {
+          Property name : string;
+          Property namespace : string;
+          Property desiredReplicas : int;
+          Property currentReplicas : int << default : int = 0; >>;
+          Property availableReplicas : int;
+          Property minReplicas : int << default : int = 1; >>;
+          Property maxReplicas : int << default : int = 100000; >> ;
+          Property containers : Sequence<ContainerT>;
+          rule maxReplicasRule = invariant self.maxReplicas >= self.desiredReplicas;
+          rule minReplicasRule = invariant self.minReplicas <= self.desiredReplicas;
+      }
+      Component Type ServiceT = {
+          Property name : string;
+          Property latency : float << default : float = 0.0; >> ;
+          Property traffic : float << default : float = 0.0; >> ;
+          Property errors : float << default : float = 0.0; >> ;
+          Property saturation : float << default : float = 0.0; >> ;
+      }
+  }
