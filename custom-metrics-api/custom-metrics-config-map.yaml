@@ -6,9 +6,31 @@ metadata:
 data:
   config.yaml: |
     rules:
-    - seriesQuery: 'kubeznn_latency_95p'
-      metricsQuery: "histogram_quantile(0.95, sum(irate(caddy_http_request_duration_seconds_bucket{namespace!="",pod=~"znn.*"}[1m])) by (le))"
-    
+    - seriesQuery: '{__name__="caddy_http_request_duration_seconds_bucket",namespace!="",pod!=""}'
+      resources:
+        overrides:
+          pod: 
+            resource: pod
+          namespace:
+            resource: namespace
+      name:
+        matches: "^(.*)_bucket"
+        as: "${1}_95p"
+      metricsQuery: 'histogram_quantile(0.95, sum(irate(caddy_http_request_duration_seconds_bucket{<<.LabelMatchers>>}[1m])) by (le))'
+      
+
+    - seriesQuery: 'caddy_http_request_duration_seconds_sum{namespace!="",pod!=""}'
+      resources:
+        overrides:
+          pod: 
+            resource: pod
+          namespace:
+            resource: namespace
+      name:
+        matches: "^(.*)_seconds_sum"
+        as: "${1}_avg"
+      metricsQuery: 'rate(caddy_http_request_duration_seconds_sum{host!="localhost"}[1m]) / rate(caddy_http_request_duration_seconds_count{host!="localhost"}[1m])'
+
     - seriesQuery: '{__name__=~"^container_.*",container_name!="POD",namespace!="",pod_name!=""}'
       seriesFilters: []
       resources:
