@@ -1,19 +1,17 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: znn
+  name: kube-znn
   labels:
-    app: znn
+    app: kube-znn
 spec:
   ports:
-    - name: znn
-      targetPort: znn
+    - name: kube-znn
+      targetPort: kube-znn
       port: 80
     - name: metrics
       port: 9180
       targetPort: caddy-exporter
-      
   selector:
-    app: znn
-    tier: frontend
+    app: kube-znn
   type: LoadBalancer

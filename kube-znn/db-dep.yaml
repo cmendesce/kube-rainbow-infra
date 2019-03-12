@@ -1,20 +1,21 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: znn-db
+  name: kube-znn-db
   labels:
-    app: znn
+    app: kube-znn-db
+    tier: db
 spec:
   selector:
     matchLabels:
-      app: znn
+      app: kube-znn-db
       tier: db
   strategy:
     type: Recreate
   template:
     metadata:
       labels:
-        app: znn
+        app: kube-znn-db
         tier: db
     spec:
       containers:

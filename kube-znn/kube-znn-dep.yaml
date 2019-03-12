@@ -1,15 +1,14 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: znn
+  name: kube-znn
   labels:
-    app: znn
+    app: kube-znn
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: znn
-      tier: frontend
+      app: kube-znn
   strategy:
     rollingUpdate:
       maxSurge: 1
@@ -18,8 +17,7 @@ spec:
   template:
     metadata:
       labels:
-        app: znn
-        tier: frontend
+        app: kube-znn
       annotations:
         prometheus.io/scrape: "true"
         prometheus.io/port: "9180"
@@ -35,17 +33,21 @@ spec:
       #           - znn-db
       #       topologyKey: kubernetes.io/hostname
       volumes:
-      - name: shared-files
-        emptyDir: {}
+      - name: fidelity-config-volume
+        configMap:
+          name: fidelity-config
+          items:
+          - key: fidelity
+            path: fidelity
       containers:
       - name: znn
         image: cmendes/znn:high
         imagePullPolicy: Always
         env:
-        #- name: FIDELITY_FILE
-        #  value: "/var/www/html/fidelity.txt"
+        - name: FIDELITY_FILE
+          value: "/www/fidelity/fidelity"
         - name: DB_HOST
-          value: "znn-db"
+          value: "kube-znn-db"
         - name: DB_PORT
           value: "3306"
         - name: DB_NAME
@@ -63,7 +65,7 @@ spec:
           httpGet:
             path: /readiness.php
             port: 80
-          initialDelaySeconds: 2
+          initialDelaySeconds: 1
           periodSeconds: 2
           failureThreshold: 5
         livenessProbe:
@@ -73,15 +75,18 @@ spec:
           initialDelaySeconds: 1
           periodSeconds: 1
           failureThreshold: 5
-        # resources:
-        #   requests:
-        #     memory: 512Mi
-        #     cpu: 500m
         ports:
         - containerPort: 80
-          name: znn
+          name: kube-znn
         - containerPort: 9180
           name: caddy-exporter
         volumeMounts:
-        - name: shared-files
-          mountPath: /var/www/html
+        - name: fidelity-config-volume
+          mountPath: /www/fidelity
+      volumes:
+      - name: fidelity-config-volume
+        configMap:
+          name: fidelity-config
+          items:
+          - key: fidelity
+            path: fidelity

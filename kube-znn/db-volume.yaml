@@ -3,7 +3,7 @@ kind: PersistentVolumeClaim
 metadata:
   name: mysql-pv-claim
   labels:
-    app: znn
+    app: kube-znn
 spec:
   accessModes:
     - ReadWriteOnce

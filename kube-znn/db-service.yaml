@@ -1,13 +1,14 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: znn-db
+  name: kube-znn-db
   labels:
-    app: znn
+    app: kube-znn-db
+    tier: db
 spec:
   ports:
     - port: 3306
   selector:
-    app: znn
+    app: kube-znn-db
     tier: db
   clusterIP: None
