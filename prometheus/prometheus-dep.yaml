@@ -24,7 +24,7 @@ spec:
         command:
           - prometheus
           - --config.file=/etc/prometheus/prometheus.yml
-          - --storage.tsdb.retention=1h
+          - --storage.tsdb.retention=12h
         ports:
         - containerPort: 9090
           protocol: TCP
@@ -35,6 +35,8 @@ spec:
         - mountPath: /etc/prometheus/prometheus.yml
           name: prometheus-config
           subPath: prometheus.yml
+      nodeSelector:
+        kops.k8s.io/instancegroup: monitoring
       volumes:
         - name: prometheus-config
           configMap:

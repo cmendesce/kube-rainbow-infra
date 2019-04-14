@@ -5,63 +5,31 @@ metadata:
   name: strategies
 data:
   strategies.s: |
-    module kubow.strategies;
-
-    import model "ZNewsSys:Acme" { ZNewsSys as M, Kubernetes as K };
+    module kuberainbow.strategies;
+    import model "KubeZnnSystem:Acme" { KubeZnnSystem as M, KubernetesFam as K };
     import lib "tactics.s";
     import op "org.sa.rainbow.model.stitch.*";
 
-    define boolean highResponseTime = M.znn-service.latency > 1000;
-    define boolean highFidelity = org.sa.rainbow.stitch.Operators.containerImage(M.znn, "znn", "cmendes/znn:high");
-    define boolean canAddPods = M.kubeZnnD.maxReplicas > M.kubeZnnD.disiredReplicas;
+    define boolean cHiRespTime = M.kubeZnnS.latency > M.MAX_RESPTIME;
+    define boolean canAddPods = M.kubeZnnD.maxReplicas > M.kubeZnnD.desiredReplicas;
+    define boolean canRemovePods = M.kubeZnnD.minReplicas < M.kubeZnnD.desiredReplicas;
 
+    strategy ReduceRespTime [ cHiRespTime ] {
+      t0: (cHiRespTime && canAddPods) -> addReplicas(1) @[30000 /*ms*/] {
+        t0a: (success) -> done;
+      }
 
-    strategy RestoreStrategy 
-      [highResponseTime] {
-      t0: (cUnfairlyPenalizedClients) -> unblackholeAttacker () @[2000 /*ms*/] {
-        t1 : (!cUnfairlyPenalizedClients) -> done;
-        t1a: (default) -> TNULL;
+      t1: (cHiRespTime && !canAddPods) -> lowerFidelity() @[30000 /*ms*/] {
+        t1a: (success) -> done;
       }
-      t2 : (cUnfairlyThrottledClients) -> unthrottle () @[2000] {
-        t2a: (!cUnfairlyThrottledClients) -> done;
-      t2b: (default) -> TNULL;
-      }
+
+      t2: (default) -> TNULL;
     }
 
-    strategy AdjustCapacity [highResponseTime && canAddPods] {
-      t0: (highResponseTime && canAddPods) -> addCapacity(1) @[5000] {
-        t0a: (!highResponseTime) -> done;
-        t0b: (default) -> TNULL;
+    strategy ReduceCost [ !cHiRespTime ] {
+      t0: (!cHiRespTime && canRemovePods) -> removeReplicas(1) @[30000 /*ms*/] {
+        t0a: (success) -> done;
       }
-    }
 
-    strategy AdjustFidelity [highResponseTime && !canAddPods] {
-      t0: (highResponseTime && !canAddPods) -> reduceServiceQuality() @[5000] {
-        t0 : (!highResponseTime) -> done;
-        t0a: (default) -> TNULL;
-      }
-    }
-
-    strategy ReduceService [highResponseTime && highFidelity] {
-      t0: (highResponseTime && M.kubeZnnD.maxReplicas > M.kubeZnnD.disiredReplicas) -> addReplicas(1) @[6000] {
-        t1: (highResponseTime) -> done;
-      }
-    }
-
-    strategy AddCapacity [cHiRespTime && !highMode] {
-      t0: (cHiRespTime) -> addReplicas(1) @[5000] {
-        t1: (!cHiRespTime) -> done;
-      }
-    }
-
-    strategy ReduceCapacity [!cHiRespTime] {
-      t0: (!cHiRespTime) -> removeReplicas(1) @[5000] {
-        t1: (success) -> done;
-      }
-    }
-
-    strategy SimpleReduceLatency [cHiRespTime && highMode] {
-      t0: (cHiRespTime) -> decreaseFidelity() @[5000] {
-        t1: (!cHiRespTime) -> done;
-      }
+      t1: (default) -> TNULL;
     }

@@ -5,61 +5,54 @@ metadata:
   name: tactics
 data:
   tactics.s: |
-    module kubow.tactics;
-
-    import model "ZNewsSys:Acme" { ZNewsSys as M, Kubernetes as K};
+    module kuberainbow.strategies;
+    import model "KubeZnnSystem:Acme" { KubeZnnSystem as M, Kubernetes as K };
     import op "org.sa.rainbow.stitch.lib.*";
 
-
-    define boolean lowMode = org.sa.rainbow.stitch.Operators.containerImage(M.znn, "znn", "cmendes/znn:low");
-    define boolean highMode = org.sa.rainbow.stitch.Operators.containerImage(M.znn, "znn", "cmendes/znn:high");
-
+    define boolean lowMode = org.sa.rainbow.stitch.Operators.containerImage(M.kubeZnnD, "znn", "cmendes/znn:low");
+    define boolean highMode = org.sa.rainbow.stitch.Operators.containerImage(M.kubeZnnD, "znn", "cmendes/znn:high");
+    define boolean cHiRespTime = M.kubeZnnS.latency > M.MAX_RESPTIME;
+    define boolean canAddPods = M.kubeZnnD.maxReplicas > M.kubeZnnD.desiredReplicas;
+    define boolean canRemovePods = M.kubeZnnD.minReplicas < M.kubeZnnD.desiredReplicas;
 
     tactic addReplicas(int count) {
       condition {
-        M.znn-service.latency > 1000;
+        cHiRespTime && canAddPods;
       }
       action {
-        int futureReplicas = M.znn.desiredReplicas + count;
-        if (futureReplicas < M.znn.maxReplicas) {
-          M.scaleUp(M.znn, futureReplicas);
-        } else {
-          M.logger("Cannot add replicas. Reached out max replicas constraint");
-        }
+        M.scaleUp(M.kubeZnnD, M.kubeZnnD.desiredReplicas + count);
       }
       effect {
-        M.znn-service.latency < 1000;
+        M.kubeZnnD.maxReplicas >= M.kubeZnnD.desiredReplicas;
       }
     }
 
     tactic removeReplicas(int count) {
       condition {
-        M.znn-service.latency < 1000;
+        !cHiRespTime && canRemovePods;
       }
       action {
-        int futureReplicas = M.znn.desiredReplicas - count;
-        M.scaleDown(M.znn, futureReplicas);
+        M.scaleDown(M.kubeZnnD, M.kubeZnnD.desiredReplicas - count);
       }
       effect {
-        M.znn-service.latency < 1000;
+        M.kubeZnnD.minReplicas <= M.kubeZnnD.desiredReplicas;
       }
     }
 
-    tactic decreaseFidelity () {
+    tactic lowerFidelity() {
       condition {
-        M.znn-service.latency > 1500;
+        (lowMode || highMode) && cHiRespTime;
       }
       action {
-
         if (highMode) {
-          M.rollOut(M.znn, "znn", "cmendes/znn:low");
+          M.rollOut(M.kubeZnnD, "znn", "cmendes/znn:low");
         }
 
         if (lowMode) {
-          M.rollOut(M.znn, "znn", "cmendes/znn:text");
+          M.rollOut(M.kubeZnnD, "znn", "cmendes/znn:text");
         }
       }
       effect {
-        M.znn-service.latency < 1500;
+        !highMode;
       }
     }

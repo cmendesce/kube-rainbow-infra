@@ -26,8 +26,8 @@ data:
     # default named port `https`. This works for single API server deployments as
     # well as HA API server deployments.
     global:
-      scrape_interval: 15s
-      scrape_timeout: 10s
+      scrape_interval: 5s
+      scrape_timeout: 5s
       evaluation_interval: 1m
 
     scrape_configs:
@@ -184,6 +184,10 @@ data:
       - source_labels: [__meta_kubernetes_service_name]
         action: replace
         target_label: kubernetes_name
+
+    - job_name: 'locust'
+      static_configs: 
+      - targets: [ 'ec2-34-231-180-42.compute-1.amazonaws.com:9090' ]
 
     # Example scrape config for pods
     #

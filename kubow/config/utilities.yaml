@@ -6,7 +6,7 @@ metadata:
 data:
   utilities.yaml: |
     model:
-      name: ZNewsSys
+      name: KubeZnnSystem
       type: Acme
     utilities:
       uR:
@@ -147,4 +147,3 @@ data:
         uM: 0
         uC: 0.00
         uA: -50
-

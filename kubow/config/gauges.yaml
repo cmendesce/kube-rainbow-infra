@@ -8,9 +8,9 @@ data:
     gauge-types:
       KubeRainbowGaugeT:
         commands:
-          setServiceProperty: Service.setServiceProperty (Object, String)
-          setDeploymentInfo: Deployment.setDeploymentInfo (Object, String)
-          setDeploymentProperty: Deployment.setDeploymentProperty (Object, String)
+          setServiceProperty: ServiceT.setServiceProperty (Object)
+          setDeploymentInfo: DeploymentT.setDeploymentInfo (Object)
+          setDeploymentProperty: DeploymentT.setDeploymentProperty (Object)
         setupParams:
           targetIP:
             type: String
@@ -32,37 +32,22 @@ data:
             type: String
             default: ~
         comment: ""
-
     gauge-instances:
       G1:
         type: KubeRainbowGaugeT
-        model: "ZNewsSys:Acme"
+        model: "KubeZnnSystem:Acme"
         commands:
-          "setServiceProperty()": "znn-service.setServiceProperty($<jsonValue>,<latency>)"
+          "setServiceProperty()": "kubeZnnS.setServiceProperty($<jsonValue>,<latency>)"
         setupValues:
           targetIP: "127.0.0.1"
         configValues:
-          targetProbeType: default-znn-latency@*
-        comment: ""
-
+          targetProbeType: kube-znn.latency.probe@*
       G2:
         type: KubeRainbowGaugeT
-        model: "ZNewsSys:Acme"
+        model: "KubeZnnSystem:Acme"
         commands:
-          "setDeploymentInfo()": znn.setDeploymentInfo($<jsonValue>)
+          "setDeploymentInfo()": kubeZnnD.setDeploymentInfo($<jsonValue>)
         setupValues:
           targetIP: "127.0.0.1"
         configValues:
-          targetProbeType: deployments.default.znn.probe@*
-        comment: ""
-
-      G3:
-        type: KubeRainbowGaugeT
-        model: "ZNewsSys:Acme"
-        commands:
-          "setContainers()": znn.setContainers($<jsonValue>)
-        setupValues:
-          targetIP: "127.0.0.1"
-        configValues:
-          targetProbeType: deployments.default.znn.probe@*
-        comment: ""
+          targetProbeType: deployments.default.kube-znn.probe@*

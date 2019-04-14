@@ -6,60 +6,45 @@ metadata:
 data:
   target-acme-model.acme: |
     import Kubernetes.acme;
-
-    System ZNewsSys : Kubernetes = new Kubernetes extended with {
-
-        Component znn-db-service : Service  = new Service extended with {
-            Port sqlPort  = {
-
-            }
-            Port connectionSqlPort  = {
-
-            }
-
-            Property name = "znn-db-service";
-
+    System KubeZnnSystem : KubernetesFam = new KubernetesFam extended with {
+        Component kubeZnnDbS : ServiceT = new ServiceT extended with {
+            Port sqlPort  = { }
+            Port connectionSqlPort  = { }
+            Property name = "kube-znn-db";
         }
-        Component znn-db : Deployment = new Deployment extended with {
-            Port sqlPort  = {
-
-            }
-            Property name = "znn-db";
+        Component kubeZnnDbD : DeploymentT = new DeploymentT extended with {
+            Port sqlPort  = { }
             Property namespace = "default";
-
+            Property name = "kube-znn-db";
         }
-
-        Component znn-service : Service = new Service extended with {
-            Property name = "znn-service";
-            Port apiPort  = {
-
-            }
-
+        Component kubeZnnS : ServiceT = new ServiceT extended with {
+            Port apiPort  = { }
+            Property name = "kube-znn";
         }
-        Component znn : Deployment  = new Deployment extended with {
-            Port apiPort  = {
-
-            }
-            Port sqlPort  = {
-
-            }
-            Property name = "znn";
+        Component kubeZnnD : DeploymentT = new DeploymentT extended with {
+            Port apiPort  = { }
+            Port sqlPort  = { }
             Property namespace = "default";
+            Property hasAlternativeImages = true;
+            Property maxReplicas = 3;
+            Property alternativeImages = <"cmendes/kube-znn:text","cmendes/kube-znn:low","cmendes/kube-znn:high">;
+            Property name = "kube-znn";
         }
-
-        Connector znn_to_znn-db  = new GenericConnection extended with {
-
+        Connector dbConnection  = new ServiceConnectorT extended with {
+            Property namespace = "default";
+            Property name = "kube-znn-db";
         }
-        Connector znn-service_to_znn  = new GenericConnection extended with {
-
+        Connector kubeZnnServiceConnector  = new LabelSelectorConnectorT extended with {
+            Property selectors = <[name : string = "app";value : string = "kube-znn";]>;
         }
-        Connector znn-db-service_to_znn-db  = new GenericConnection extended with {
-
+        Connector dbServiceConnector  = new ServiceConnectorT extended with {
+            Property selectors = <[name : string = "app";value : string = "kube-znn-db";]>;
         }
-        Attachment znn-db-service.sqlPort to znn-db-service_to_znn-db.sender;
-        Attachment znn-db.sqlPort to znn-db-service_to_znn-db.receiver;
-        Attachment znn-service.apiPort to znn-service_to_znn.sender;
-        Attachment znn.apiPort to znn-service_to_znn.receiver;
-        Attachment znn-db-service.connectionSqlPort to znn_to_znn-db.receiver;
-        Attachment znn.sqlPort to znn_to_znn-db.sender;
+        Property MAX_RESPTIME = 1000;
+        Attachment kubeZnnDbD.sqlPort to dbServiceConnector.selectee;
+        Attachment kubeZnnDbS.sqlPort to dbServiceConnector.selector;
+        Attachment kubeZnnDbS.connectionSqlPort to kubeZnnServiceConnector.callee;
+        Attachment kubeZnnD.sqlPort to kubeZnnServiceConnector.caller;
+        Attachment kubeZnnD.apiPort to dbConnection.selectee;
+        Attachment kubeZnnS.apiPort to dbConnection.selector;
     }
